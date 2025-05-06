@@ -2,11 +2,16 @@ import openai
 from telegram import Bot
 import schedule
 import time
+import os
 
-# Thay đổi các giá trị bên dưới
-TELEGRAM_TOKEN = "TOKEN_TELEGRAM_CỦA_BẠN"
-CHATGPT_API_KEY = "OPENAI_API_KEY_CỦA_BẠN"
-GROUP_CHAT_ID = "ID_GROUP_CỦA_BẠN"
+# Đọc giá trị token và keys từ biến môi trường
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+CHATGPT_API_KEY = os.getenv("OPENAI_API_KEY")
+GROUP_CHAT_ID = os.getenv("GROUP_CHAT_ID")
+
+# Kiểm tra nếu thiếu bất kỳ giá trị nào
+if not TELEGRAM_TOKEN or not CHATGPT_API_KEY or not GROUP_CHAT_ID:
+    raise ValueError("Thiếu thông tin cấu hình. Vui lòng kiểm tra các biến môi trường.")
 
 openai.api_key = CHATGPT_API_KEY
 bot = Bot(token=TELEGRAM_TOKEN)
