@@ -47,3 +47,20 @@ print("Bot đang chạy, chờ gửi tin nhắn mỗi ngày lúc 08:00...")
 while True:
     schedule.run_pending()
     time.sleep(30)
+    def send_morning_message():
+    print("🔧 Bắt đầu gửi tin nhắn...")
+
+    greeting_prompt = "Viết một câu chúc buổi sáng tốt lành, vui vẻ và tràn đầy năng lượng cho team sales."
+    quote_prompt = "Viết một câu châm ngôn hoặc câu nói truyền động lực ngắn gọn cho team sales."
+
+    try:
+        greeting = get_message(greeting_prompt)
+        print("✅ Greeting:", greeting)
+        quote = get_message(quote_prompt)
+        print("✅ Quote:", quote)
+
+        full_message = f"🌞 **Chào buổi sáng Team Sales!**\n\n{greeting}\n\n💡 **Châm ngôn hôm nay:**\n_{quote}_"
+        bot.send_message(chat_id=GROUP_CHAT_ID, text=full_message, parse_mode='Markdown')
+        print("✅ Đã gửi thông điệp buổi sáng!")
+    except Exception as e:
+        print("❌ Lỗi khi gửi tin nhắn:", str(e))
