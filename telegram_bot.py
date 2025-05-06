@@ -1,25 +1,23 @@
 import openai
 from telegram import Bot
-import schedule
-import time
 import os
 
-# Lấy các biến môi trường từ GitHub Actions Secrets
+# Đọc từ biến môi trường
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-CHATGPT_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GROUP_CHAT_ID = os.getenv("GROUP_CHAT_ID")
 
-# Kiểm tra nếu thiếu biến
-if not TELEGRAM_TOKEN or not CHATGPT_API_KEY or not GROUP_CHAT_ID:
-    raise ValueError("❌ Thiếu biến môi trường! Vui lòng kiểm tra TELEGRAM_TOKEN, OPENAI_API_KEY, GROUP_CHAT_ID.")
+# Kiểm tra biến
+if not TELEGRAM_TOKEN or not OPENAI_API_KEY or not GROUP_CHAT_ID:
+    raise ValueError("Thiếu biến môi trường")
 
-# Khởi tạo bot và API
-openai.api_key = CHATGPT_API_KEY
+# Cấu hình OpenAI mới
+client = openai.OpenAI(api_key=OPENAI_API_KEY)
 bot = Bot(token=TELEGRAM_TOKEN)
 
 def get_message(prompt):
-    print(f"💬 Gửi prompt tới ChatGPT: {prompt}")
-    response = openai.ChatCompletion.create(
+    print("💬 Gửi prompt tới ChatGPT:", prompt)
+    response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "Bạn là một trợ lý gửi lời chúc mỗi ngày."},
@@ -28,15 +26,15 @@ def get_message(prompt):
         max_tokens=100,
         temperature=0.8,
     )
-    return response['choices'][0]['message']['content'].strip()
+    return response.choices[0].message.content.strip()
 
 def send_morning_message():
     print("🔧 Bắt đầu gửi tin nhắn...")
 
-    greeting_prompt = "Viết một câu chúc buổi sáng tốt lành, vui vẻ và tràn đầy năng lượng cho team sales."
-    quote_prompt = "Viết một câu châm ngôn hoặc câu nói truyền động lực ngắn gọn cho team sales."
-
     try:
+        greeting_prompt = "Viết một câu chúc buổi sáng tốt lành, vui vẻ và tràn đầy năng lượng cho team sales."
+        quote_prompt = "Viết một câu châm ngôn hoặc câu nói truyền động lực ngắn gọn cho team sales."
+
         greeting = get_message(greeting_prompt)
         print("✅ Greeting:", greeting)
 
@@ -51,9 +49,6 @@ def send_morning_message():
     except Exception as e:
         print("❌ Lỗi khi gửi tin nhắn:", str(e))
 
-# Lên lịch chạy mỗi ngày lúc 8h sáng (nếu chạy cục bộ)
-schedule.every().day.at("08:00").do(send_morning_message)
-
-# Nếu chạy trên GitHub Actions, gọi trực tiếp một lần
+# Gọi ngay
 if __name__ == "__main__":
     send_morning_message()
