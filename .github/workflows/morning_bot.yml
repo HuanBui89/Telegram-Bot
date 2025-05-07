@@ -1,8 +1,9 @@
 name: Telegram Morning Bot
 
 on:
-  schedule:
-  - cron: '*/5 * * * *'  # Chạy lúc 7h30 sáng giờ Việt Nam (UTC+7)
+ schedule:
+  - cron: '30 0 * * *'  # 7:30 sáng giờ Việt Nam (UTC+7) 
+    # Chạy lúc 7h30 sáng giờ Việt Nam (UTC+7)
   workflow_dispatch:     # ✅ Dòng này cho phép chạy thủ công
 
 jobs:
