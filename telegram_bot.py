@@ -42,11 +42,6 @@ def send_morning_message():
     now = datetime.now(vietnam_tz)
     print("🕒 Giờ hệ thống (Vietnam):", now.strftime("%H:%M"))
 
-    # Chỉ gửi nếu đang trong khung giờ 7:30–7:50 sáng
-    if not (now.hour == 7 and 30 <= now.minute <= 50):
-        print(f"⏳ Không gửi vì không nằm trong khung giờ 7:30–7:50 sáng.")
-        return
-
     start_time = now
     print("🚀 Bắt đầu gửi lúc:", start_time.strftime("%H:%M:%S"))
 
