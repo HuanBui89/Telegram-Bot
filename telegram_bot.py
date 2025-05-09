@@ -39,28 +39,36 @@ def create_image(prompt):
 # Gửi tin nhắn sáng
 def send_morning_message():
     vietnam_tz = pytz.timezone("Asia/Ho_Chi_Minh")
-    start_time = datetime.now(vietnam_tz)
-    print("🚀 Bắt đầu lúc:", start_time.strftime("%H:%M:%S"))
+    now = datetime.now(vietnam_tz)
+    print("🕒 Giờ hệ thống (Vietnam):", now.strftime("%H:%M"))
+
+    # Chỉ gửi nếu đang trong khung giờ 7:30–7:50 sáng
+    if not (now.hour == 7 and 30 <= now.minute <= 50):
+        print(f"⏳ Không gửi vì không nằm trong khung giờ 7:30–7:50 sáng.")
+        return
+
+    start_time = now
+    print("🚀 Bắt đầu gửi lúc:", start_time.strftime("%H:%M:%S"))
 
     try:
-        # Lời chúc buổi sáng phong cách Gen Z
+        # Lời chúc phong cách Gen Z
         greeting = get_text(
             "Viết lời chúc buổi sáng dành cho team sales sinh từ 1997–2003 theo phong cách Gen Z, vui vẻ, tràn đầy năng lượng, dùng cả tiếng Việt pha chút tiếng Anh như phong cách meme TikTok. Nội dung cần truyền cảm hứng làm việc và cảm giác 'chốt đơn như boss'."
         )
 
-        # Châm ngôn động lực pha Gen Z + Tiếng Anh
+        # Châm ngôn Gen Z pha tiếng Anh
         quote = get_text(
             "Viết một câu châm ngôn truyền động lực cho team sales trẻ, pha phong cách Gen Z, có thể mix tiếng Việt và tiếng Anh, văn phong vui nhộn, tích cực, hợp với môi trường năng động."
         )
 
-        # Tạo mô tả ảnh sáng tích cực
+        # Prompt ảnh sáng tích cực
         image_prompt = get_text(
             "Mô tả một hình ảnh buổi sáng dễ chịu, tươi sáng, phong cách vui nhộn, nhẹ nhàng để tạo ảnh AI minh họa cho lời chúc buổi sáng."
         )
 
         image_url = create_image(image_prompt)
 
-        caption = f"🌞 **Chào buổi sáng Team Sales!**\n\n{greeting}\n\n💡 **Châm ngôn hôm nay:**\n_{quote}_"
+        caption = f"🌞 **Hello mấy ní!**\n\n{greeting}\n\n💡 **Châm ngôn hôm nay:**\n_{quote}_"
 
         bot.send_photo(chat_id=GROUP_CHAT_ID, photo=image_url, caption=caption, parse_mode='Markdown')
 
