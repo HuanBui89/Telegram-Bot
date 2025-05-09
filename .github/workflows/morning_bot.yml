@@ -2,7 +2,7 @@ name: Telegram Morning Bot
 
 on:
   schedule:
-    - cron: '0 1 * * *'  # 8:00 sáng Việt Nam (UTC+7)
+    - cron: '20 0 * * *'  # 7:20 sáng Việt Nam (UTC+7)
   workflow_dispatch:
 
 jobs:
@@ -10,7 +10,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -20,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install schedule
+          pip install schedule pytz openai python-telegram-bot
 
       - name: Run bot
         env:
