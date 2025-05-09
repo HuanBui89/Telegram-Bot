@@ -20,7 +20,7 @@ def get_text(prompt):
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": prompt}],
         max_tokens=100,
-        temperature=0.9,
+        temperature=0.95,
     )
     return response.choices[0].message.content.strip()
 
@@ -43,9 +43,20 @@ def send_morning_message():
     print("🚀 Bắt đầu lúc:", start_time.strftime("%H:%M:%S"))
 
     try:
-        greeting = get_text("Viết lời chúc buổi sáng theo phong cách vui nhộn, trẻ trung, dùng ngôn ngữ Gen Z, dành cho team sales sinh từ 1997–2003. Lời chúc phải tràn đầy năng lượng và tạo cảm hứng làm việc.")
-        quote = get_text("Viết một câu châm ngôn tạo động lực ngắn gọn nhưng hài hước, văn phong Gen Z, truyền cảm hứng làm việc cho team sales trẻ.")
-        image_prompt = get_text("Mô tả một hình ảnh buổi sáng dễ chịu, tươi sáng, phong cách vui nhộn, nhẹ nhàng để tạo ảnh AI minh họa cho lời chúc buổi sáng.")
+        # Lời chúc buổi sáng phong cách Gen Z
+        greeting = get_text(
+            "Viết lời chúc buổi sáng dành cho team sales sinh từ 1997–2003 theo phong cách Gen Z, vui vẻ, tràn đầy năng lượng, dùng cả tiếng Việt pha chút tiếng Anh như phong cách meme TikTok. Nội dung cần truyền cảm hứng làm việc và cảm giác 'chốt đơn như boss'."
+        )
+
+        # Châm ngôn động lực pha Gen Z + Tiếng Anh
+        quote = get_text(
+            "Viết một câu châm ngôn truyền động lực cho team sales trẻ, pha phong cách Gen Z, có thể mix tiếng Việt và tiếng Anh, văn phong vui nhộn, tích cực, hợp với môi trường năng động."
+        )
+
+        # Tạo mô tả ảnh sáng tích cực
+        image_prompt = get_text(
+            "Mô tả một hình ảnh buổi sáng dễ chịu, tươi sáng, phong cách vui nhộn, nhẹ nhàng để tạo ảnh AI minh họa cho lời chúc buổi sáng."
+        )
 
         image_url = create_image(image_prompt)
 
