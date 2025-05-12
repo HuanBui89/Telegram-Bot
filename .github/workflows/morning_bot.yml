@@ -2,12 +2,18 @@ name: Telegram Morning Bot
 
 on:
   schedule:
-    - cron: '20 0 * * *'  # 7:20 sáng Việt Nam (UTC+7)
+    - cron: '20 0 * * *'   # 00:20 UTC = 07:20 ICT
   workflow_dispatch:
 
 jobs:
   send_message:
     runs-on: ubuntu-latest
+    env:
+      TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GROUP_CHAT_ID: ${{ secrets.GROUP_CHAT_ID }}
+      # Nếu bạn dùng in-script schedule, bỏ comment dòng TZ sau:
+      # TZ: Asia/Ho_Chi_Minh
 
     steps:
       - name: Checkout code
@@ -23,10 +29,6 @@ jobs:
           pip install -r requirements.txt
           pip install schedule pytz openai python-telegram-bot
 
-      - name: Run bot
-        env:
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GROUP_CHAT_ID: ${{ secrets.GROUP_CHAT_ID }}
+      - name: Send morning message
         run: |
-          python telegram_bot.py
+          python telegram_bot.py --once
