@@ -6,13 +6,21 @@ import openai
 from telegram import Bot
 
 # Lấy từ biến môi trường
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-GROUP_CHAT_ID = os.getenv("GROUP_CHAT_ID")
+TELEGRAM_TOKEN   = os.getenv("TELEGRAM_TOKEN")
+OPENAI_API_KEY   = os.getenv("OPENAI_API_KEY")
+GROUP_CHAT_ID    = os.getenv("GROUP_CHAT_ID")
 
 # Cấu hình bot và OpenAI
-bot = Bot(token=TELEGRAM_TOKEN)
+bot    = Bot(token=TELEGRAM_TOKEN)
 client = openai.OpenAI(api_key=OPENAI_API_KEY)
+
+# Prompt cố định cho ảnh mỗi buổi sáng
+IMAGE_PROMPT = (
+    "A fresh, vibrant morning nature scene: "
+    "misty green hills and a sun rising softly in the sky, "
+    "a rustic wooden table in the foreground with a steaming cup of coffee, "
+    "bright wildflowers on the side — conveys calm energy and positivity."
+)
 
 # Nội dung động lực theo ngày
 weekday_boost = {
@@ -63,15 +71,11 @@ def send_morning_message():
         )
         quote = f"{quote_en}\n_({quote_vi})_"
 
-        # Tạo ảnh minh họa
-        image_prompt = get_text(
-            "Mô tả một hình ảnh minh họa tạo động lực buổi sáng cho Gen Z – "
-            "phong cách trẻ trung, năng động, tươi sáng, tranh 4D, phù hợp với dân văn phòng sales."
-        )
-        image_url = create_image(image_prompt)
+        # Tạo ảnh minh họa cố định
+        image_url = create_image(IMAGE_PROMPT)
 
         # Soạn caption và gửi
-        greeting = "Chào buổi sáng team sales! ☀️"
+        greeting   = "Chào buổi sáng team sales! ☀️"
         daily_line = weekday_boost.get(today, "")
         caption = f"{greeting}\n{daily_line}\n\n💡 **Châm ngôn hôm nay:**\n{quote}"
 
