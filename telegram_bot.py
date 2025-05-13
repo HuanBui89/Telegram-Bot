@@ -1,6 +1,5 @@
 import argparse
 import os
-import re
 from datetime import datetime
 import pytz
 import openai
@@ -11,11 +10,6 @@ TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GROUP_CHAT_ID = os.getenv("GROUP_CHAT_ID")
 
-# Kiểm tra biến môi trường
-assert TELEGRAM_TOKEN, "❌ Thiếu TELEGRAM_TOKEN"
-assert OPENAI_API_KEY, "❌ Thiếu OPENAI_API_KEY"
-assert GROUP_CHAT_ID, "❌ Thiếu GROUP_CHAT_ID"
-
 # Cấu hình bot và OpenAI
 bot = Bot(token=TELEGRAM_TOKEN)
 client = openai.OpenAI(api_key=OPENAI_API_KEY)
@@ -24,25 +18,20 @@ client = openai.OpenAI(api_key=OPENAI_API_KEY)
 IMAGE_PROMPT = (
     "A fresh, vibrant morning nature scene: "
     "misty green hills and a sun rising softly in the sky, "
-    "a rustic wooden table in the foreground with a steaming cup of coffee, "
-    "bright wildflowers on the side — conveys calm energy and positivity."
+    "a rustic wooden table in the foreground with a steaming cup of coffee or tea, "
+    "bright wildflowers on the side — conveys calm energy and positivity. A picture make who see will full of power and relax in the morning"
 )
 
 # Nội dung động lực theo ngày
 weekday_boost = {
-    "Monday":    "📅 Đầu tuần rồi, bung lụa mở bát thiệt mạnh nha mấy chế! 💪",
-    "Tuesday":   "📅 Thứ ba không drama – chỉ có đơn đổ ào ào thôi nè! 📈",
+    "Monday": "📅 Đầu tuần rồi, bung lụa mở bát thiệt mạnh nha mấy chế! 💪",
+    "Tuesday": "📅 Thứ ba không drama – chỉ có đơn đổ ào ào thôi nè! 📈",
     "Wednesday": "📅 Giữa tuần giữ phong độ, đơn về là có động lực liền! 😎",
-    "Thursday":  "📅 Thứ năm tăng tốc, chạy KPI mượt như nước mắm Nam Ngư! 🚀",
-    "Friday":    "📅 Cuối tuần nhưng không xả hơi – chốt đơn xong rồi hãy chơi! 🕺",
-    "Saturday":  "📅 Thứ bảy máu chiến – ai chốt được hôm nay là đỉnh của chóp! 🔥",
-    "Sunday":    "📅 Chủ nhật chill nhẹ, nhưng ai chốt đơn thì vẫn là người chiến thắng! 🏆",
+    "Thursday": "📅 Thứ năm tăng tốc, chạy KPI mượt như nước mắm Nam Ngư! 🚀",
+    "Friday": "📅 Cuối tuần nhưng không xả hơi – chốt đơn xong rồi hãy chơi! 🕺",
+    "Saturday": "📅 Thứ bảy máu chiến – ai chốt được hôm nay là đỉnh của chóp! 🔥",
+    "Sunday": "📅 Chủ nhật chill nhẹ, nhưng ai chốt đơn thì vẫn là người chiến thắng! 🏆",
 }
-
-def escape_markdown(text: str) -> str:
-    """Escape các ký tự đặc biệt cho MarkdownV2"""
-    escape_chars = r"_*[]()~`>#+-=|{}.!"
-    return re.sub(f"([{re.escape(escape_chars)}])", r"\\\1", text)
 
 def get_text(prompt: str) -> str:
     """Gọi OpenAI ChatCompletion để lấy text"""
@@ -51,7 +40,7 @@ def get_text(prompt: str) -> str:
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": prompt}],
         max_tokens=150,
-        temperature=0.95,
+        temperature=0.7,
     )
     return resp.choices[0].message.content.strip()
 
@@ -68,39 +57,45 @@ def create_image(prompt: str) -> str:
     return resp.data[0].url
 
 def send_morning_message():
-    """Soạn và gửi tin chào buổi sáng kèm ảnh và thơ"""
+    """Soạn và gửi tin chào buổi sáng kèm ảnh và châm ngôn dịch nghĩa"""
     vietnam_tz = pytz.timezone("Asia/Ho_Chi_Minh")
     now = datetime.now(vietnam_tz)
     today = now.strftime("%A")
     print("📅 Hôm nay là:", today)
 
     try:
-        # Lấy bài thơ lục bát tạo động lực
-        poem = get_text(
-            "Hãy viết một bài thơ lục bát gồm 4 câu, mang tinh thần tích cực, truyền động lực cho dân sales làm việc mỗi sáng. "
-            "Văn phong trẻ trung, vui vẻ, dễ hiểu, có vần điệu, tránh dùng từ cổ."
+        # Lấy câu nói tiếng Anh
+        quote_en = get_text(
+            "Hãy trích dẫn một câu nói truyền cảm hứng từ các triết gia, danh nhân, hoặc nhà khoa học nổi tiếng. "
+            "Trả về nguyên văn câu nói bằng tiếng Anh và ghi rõ tên tác giả (ví dụ: Albert Einstein, Socrates...)."
         )
 
-        # Tạo ảnh minh họa buổi sáng
+        # Dịch sang tiếng Việt theo phong cách truyền cảm hứng, dễ hiểu
+        quote_vi = get_text(
+            f"Dịch câu sau sang tiếng Việt theo phong cách truyền cảm hứng, rõ ràng, dễ hiểu:\n{quote_en}"
+        )
+
+        # Tạo ảnh minh họa
         image_url = create_image(IMAGE_PROMPT)
 
-        # Soạn caption và gửi
+        # Soạn caption
         greeting = "Chào buổi sáng team sales! ☀️"
         daily_line = weekday_boost.get(today, "")
-        caption_raw = f"{greeting}\n{daily_line}\n\n📝 Thơ hôm nay:\n{poem}"
-        caption = escape_markdown(caption_raw)
-
-        # In thử caption để debug
-        print("📤 Caption gửi đi:\n", caption_raw)
+        caption = (
+            f"{greeting}\n{daily_line}\n\n"
+            f"💡 **Châm ngôn hôm nay:**\n"
+            f"“{quote_en}”\n"
+            f"_({quote_vi})_"
+        )
 
         # Gửi ảnh kèm caption
         bot.send_photo(
             chat_id=GROUP_CHAT_ID,
             photo=image_url,
             caption=caption,
-            parse_mode='MarkdownV2'
+            parse_mode='Markdown'
         )
-        print("✅ Đã gửi lời chúc kèm ảnh và thơ thành công!")
+        print("✅ Đã gửi lời chúc kèm ảnh và châm ngôn dịch nghĩa thành công!")
 
     except Exception as e:
         print("❌ Gửi thất bại:", str(e))
@@ -115,7 +110,7 @@ def main():
         send_morning_message()
         return
 
-    # Scheduling thủ công nếu cần
+    # Lập lịch nếu cần
     # import schedule, time
     # schedule.every().day.at("07:20").do(send_morning_message)
     # while True:
