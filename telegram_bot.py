@@ -4,10 +4,9 @@ from datetime import datetime
 import pytz
 import openai
 from telegram import Bot
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
 import requests
 import io
-import textwrap
 
 # Lấy từ biến môi trường
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
@@ -18,7 +17,7 @@ GROUP_CHAT_ID = os.getenv("GROUP_CHAT_ID")
 bot = Bot(token=TELEGRAM_TOKEN)
 client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
-# Cảnh nền theo ngày
+# Cảnh nền thay đổi theo ngày
 daily_scenes = {
     "Monday": "sunrise over a calm lake with morning mist",
     "Tuesday": "golden rice fields in early sunlight",
@@ -29,7 +28,7 @@ daily_scenes = {
     "Sunday": "river flowing through peaceful forest in sunrise",
 }
 
-# Lời chúc động lực
+# Lời chúc theo ngày
 weekday_boost = {
     "Monday": "📅 Đầu tuần rồi, bung lụa mở bát thiệt mạnh nha mấy chế! 💪",
     "Tuesday": "📅 Thứ ba không drama – chỉ có đơn đổ ào ào thôi nè! 📈",
@@ -49,8 +48,8 @@ def get_text(prompt: str, max_tokens=150) -> str:
     )
     return resp.choices[0].message.content.strip()
 
-def create_image(prompt: str) -> Image.Image:
-    """Gọi DALL·E, tải ảnh về và trả về đối tượng PIL"""
+def create_image(prompt: str) -> str:
+    """Tạo ảnh từ DALL·E và lưu vào local, trả về đường dẫn file"""
     print("🖼️ Tạo ảnh với prompt:", prompt)
     response = client.images.generate(
         model="dall-e-3",
@@ -61,68 +60,44 @@ def create_image(prompt: str) -> Image.Image:
     )
     image_url = response.data[0].url
     image_bytes = requests.get(image_url).content
-    return Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
-def draw_quote_on_image(image: Image.Image, en: str, vi: str) -> Image.Image:
-    """Chèn châm ngôn + dịch nghĩa lên ảnh"""
-    draw = ImageDraw.Draw(image)
-    font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-    font = ImageFont.truetype(font_path, 28)
-
-    margin = 40
-    max_width = image.width - 2 * margin
-    text = f"{en}\n({vi})"
-    wrapped = textwrap.fill(text, width=50)
-
-    bbox = draw.textbbox((0, 0), wrapped, font=font)
-    x = margin
-    y = image.height - (bbox[3] - bbox[1]) - 60
-
-    # Nền mờ cho chữ
-    draw.rectangle(
-        [x - 10, y - 10, x + max_width, y + (bbox[3] - bbox[1]) + 20],
-        fill=(0, 0, 0, 180)
-    )
-    # Chữ trắng
-    draw.text((x, y), wrapped, font=font, fill="white")
-    return image
+    image_path = "/tmp/morning_motivation_clean.png"
+    image.save(image_path)
+    return image_path
 
 def send_morning_message():
-    """Soạn và gửi tin chào buổi sáng có ảnh và châm ngôn in sẵn"""
+    """Tạo ảnh, lấy quote, và gửi lên Telegram với ảnh sạch (không chèn chữ)"""
     vietnam_tz = pytz.timezone("Asia/Ho_Chi_Minh")
     now = datetime.now(vietnam_tz)
     today = now.strftime("%A")
     print("📅 Hôm nay là:", today)
 
     try:
-        # 1. Châm ngôn và dịch
+        # 1. Lấy quote + dịch
         quote_en = get_text("Trích dẫn một câu châm ngôn nổi tiếng từ danh nhân và ghi rõ người nói.")
         quote_vi = get_text(f"Dịch sang tiếng Việt dễ hiểu, truyền cảm hứng:\n{quote_en}")
+        quote = f"“{quote_en}”\n_({quote_vi})_"
 
-        # 2. Tạo ảnh theo ngày
+        # 2. Tạo ảnh nền
         scene_prompt = f"A beautiful {daily_scenes.get(today, 'sunrise over mountains')}, ultra-realistic, no text"
-        base_image = create_image(scene_prompt)
+        image_path = create_image(scene_prompt)
 
-        # 3. Vẽ chữ vào ảnh
-        final_image = draw_quote_on_image(base_image, quote_en, quote_vi)
-
-        # 4. Lưu ảnh tạm
-        image_path = "/tmp/morning_motivation.png"
-        final_image.save(image_path)
-
-        # 5. Caption
+        # 3. Soạn caption
         greeting = "Chào buổi sáng team sales! ☀️"
         daily_line = weekday_boost.get(today, "")
-        caption = f"{greeting}\n{daily_line}"
+        caption = f"{greeting}\n{daily_line}\n\n💡 **Châm ngôn hôm nay:**\n{quote}"
 
-        # 6. Gửi Telegram
+        # 4. Gửi Telegram
         with open(image_path, "rb") as img:
             bot.send_photo(
                 chat_id=GROUP_CHAT_ID,
                 photo=img,
-                caption=caption
+                caption=caption,
+                parse_mode="Markdown"
             )
-        print("✅ Đã gửi lời chúc kèm ảnh thành công!")
+
+        print("✅ Đã gửi ảnh và nội dung thành công!")
 
     except Exception as e:
         print("❌ Gửi thất bại:", str(e))
