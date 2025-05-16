@@ -12,8 +12,7 @@ jobs:
       TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       GROUP_CHAT_ID: ${{ secrets.GROUP_CHAT_ID }}
-      # Nếu bạn dùng in-script schedule, bỏ comment dòng TZ sau:
-      # TZ: Asia/Ho_Chi_Minh
+      TZ: Asia/Ho_Chi_Minh  # Bỏ comment nếu script cần xử lý timezone
 
     steps:
       - name: Checkout code
@@ -25,10 +24,7 @@ jobs:
           python-version: '3.10'
 
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install schedule pytz openai python-telegram-bot
+        run: pip install -r requirements.txt
 
       - name: Send morning message
-        run: |
-          python telegram_bot.py --once
+        run: python telegram_bot.py --once
