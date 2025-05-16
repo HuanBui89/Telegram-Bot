@@ -12,7 +12,7 @@ jobs:
       TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       GROUP_CHAT_ID: ${{ secrets.GROUP_CHAT_ID }}
-      TZ: Asia/Ho_Chi_Minh  # Bỏ comment nếu script cần xử lý timezone
+      TZ: Asia/Ho_Chi_Minh  # Bắt buộc phải có
 
     steps:
       - name: Checkout code
