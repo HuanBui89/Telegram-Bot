@@ -40,6 +40,7 @@ weekday_boost = {
 }
 
 def get_text(prompt: str, max_tokens=150) -> str:
+    """Lấy nội dung từ ChatGPT"""
     resp = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": prompt}],
@@ -49,7 +50,7 @@ def get_text(prompt: str, max_tokens=150) -> str:
     return resp.choices[0].message.content.strip()
 
 def create_image(prompt: str) -> str:
-    """Tạo ảnh từ DALL·E và lưu vào local, trả về đường dẫn file"""
+    """Tạo ảnh từ DALL·E và lưu vào local"""
     print("🖼️ Tạo ảnh với prompt:", prompt)
     response = client.images.generate(
         model="dall-e-3",
@@ -62,50 +63,53 @@ def create_image(prompt: str) -> str:
     image_bytes = requests.get(image_url).content
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
-    image_path = "/tmp/morning_motivation_clean.png"
+    image_path = "/tmp/morning_motivation.png"
     image.save(image_path)
     return image_path
 
 def send_morning_message():
-    """Tạo ảnh, lấy quote, và gửi lên Telegram với ảnh sạch (không chèn chữ)"""
-    vietnam_tz = pytz.timezone("Asia/Ho_Chi_Minh")
-    now = datetime.now(vietnam_tz)
-    today = now.strftime("%A")
-    print("📅 Hôm nay là:", today)
-
+    """Gửi tin buổi sáng kèm ảnh động lực"""
     try:
-        # 1. Lấy quote + dịch
+        # 1. Xác định thời gian
+        vietnam_tz = pytz.timezone("Asia/Ho_Chi_Minh")
+        now = datetime.now(vietnam_tz)
+        current_time = now.strftime("%H:%M:%S")
+        today = now.strftime("%A")
+        print(f"🕒 [DEBUG] Thời gian chạy thực tế (ICT): {current_time}")
+        print(f"📅 Hôm nay là: {today}")
+
+        # 2. Lấy quote
         quote_en = get_text("Trích dẫn một câu châm ngôn nổi tiếng từ danh nhân và ghi rõ người nói.")
         quote_vi = get_text(f"Dịch sang tiếng Việt dễ hiểu, truyền cảm hứng:\n{quote_en}")
         quote = f"“{quote_en}”\n_({quote_vi})_"
 
-        # 2. Tạo ảnh nền
+        # 3. Tạo ảnh
         scene_prompt = f"A beautiful {daily_scenes.get(today, 'sunrise over mountains')}, ultra-realistic, no text"
         image_path = create_image(scene_prompt)
 
-        # 3. Soạn caption
+        # 4. Soạn nội dung
         greeting = "Chào buổi sáng team sales! ☀️"
         daily_line = weekday_boost.get(today, "")
         caption = f"{greeting}\n{daily_line}\n\n💡 **Châm ngôn hôm nay:**\n{quote}"
 
-        # 4. Gửi Telegram
+        # 5. Gửi Telegram
         with open(image_path, "rb") as img:
             bot.send_photo(
                 chat_id=GROUP_CHAT_ID,
                 photo=img,
                 caption=caption,
-                parse_mode="Markdown"
+                parse_mode="Markdown",
+                timeout=15  # Chống delay
             )
-
-        print("✅ Đã gửi ảnh và nội dung thành công!")
+        print("✅ Đã gửi thành công lúc:", datetime.now(vietnam_tz).strftime("%H:%M:%S"))
 
     except Exception as e:
-        print("❌ Gửi thất bại:", str(e))
-        print("🪵 Chi tiết lỗi:", repr(e))
+        print("❌ Lỗi nghiêm trọng:", str(e))
+        raise e
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--once', action='store_true', help='Gửi tin ngay lập tức rồi thoát')
+    parser.add_argument('--once', action='store_true', help='Gửi tin ngay lập tức')
     args = parser.parse_args()
 
     if args.once:
