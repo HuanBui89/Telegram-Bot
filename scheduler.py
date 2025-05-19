@@ -12,13 +12,13 @@ def wait_until(hour: int, minute: int):
 
 def run_daily():
     while True:
-        wait_until(7, 0)  # chạy lúc 7:00 sáng giờ VN
+        wait_until(7, 0)  # chạy lúc 07:00 ICT
         try:
             print("⏰ Gửi tin nhắn sáng...")
             send_morning_message()
         except Exception as e:
             print("❌ Lỗi khi gửi:", e)
-        time.sleep(60)  # tránh gửi lặp lại trong 1 phút
+        time.sleep(60)  # chờ tránh lặp lại
 
 if __name__ == "__main__":
     run_daily()
