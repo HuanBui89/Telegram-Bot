@@ -1,8 +1,9 @@
 services:
-  - type: cron
-    name: morning-sales-bot
-    schedule: "0 0 * * *"   # ⏰ Chạy lúc 07:00 ICT (tương đương 0:00 UTC)
-    command: python morning_bot.py --once
+  - type: web
+    name: morning-bot-service
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python scheduler.py
     envVars:
       - key: TELEGRAM_TOKEN
         sync: false
