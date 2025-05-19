@@ -1,0 +1,13 @@
+services:
+  - type: cron
+    name: morning-sales-bot
+    schedule: "0 7 * * *"  # ⏰ Chạy lúc 07:00 ICT (Vietnam time)
+    timezone: Asia/Ho_Chi_Minh
+    envVars:
+      - key: TELEGRAM_TOKEN
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GROUP_CHAT_ID
+        sync: false
+    run: python morning_bot.py --once
