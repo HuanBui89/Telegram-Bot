@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: morning-bot-service
+    name: morning-sales-bot
     env: python
     buildCommand: pip install -r requirements.txt
     startCommand: python scheduler.py
