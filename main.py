@@ -111,3 +111,21 @@ async def send_morning_message():
 # ============ MAIN ============
 if __name__ == "__main__":
     asyncio.run(send_morning_message())
+    from fastapi import FastAPI
+import uvicorn
+
+app = FastAPI()
+
+@app.get("/")
+def home():
+    return {"status": "ok", "message": "Telegram bot is alive"}
+
+@app.post("/run")
+async def run_now():
+    await send_morning_message()
+    return {"status": "done"}
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(send_morning_message())
+
