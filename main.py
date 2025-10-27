@@ -119,7 +119,7 @@ app = FastAPI()
 def home():
     return {"status": "ok", "message": "Telegram bot is alive"}
 
-@app.post("/run")
+@app.get("/run")
 async def run_now():
     await send_morning_message()
     return {"status": "done"}
