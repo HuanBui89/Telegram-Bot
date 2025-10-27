@@ -109,9 +109,8 @@ async def send_morning_message():
         print("❌ Lỗi nghiêm trọng:", str(e))
 
 # ============ MAIN ============
-if __name__ == "__main__":
-    asyncio.run(send_morning_message())
-    from fastapi import FastAPI
+
+from fastapi import FastAPI
 import uvicorn
 
 app = FastAPI()
@@ -126,6 +125,4 @@ async def run_now():
     return {"status": "done"}
 
 if __name__ == "__main__":
-    import asyncio
-    asyncio.run(send_morning_message())
-
+    uvicorn.run("main:app", host="0.0.0.0", port=8000)
