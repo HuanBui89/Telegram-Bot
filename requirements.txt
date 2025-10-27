@@ -1,6 +1,8 @@
 python-telegram-bot==20.6
 openai==1.12.0
-requests==2.32.3
-pytz==2025.2
-Pillow==10.4.0
-APScheduler==3.10.4
+pytz
+requests
+Pillow
+aiogram==3.2.0
+fastapi
+uvicorn
